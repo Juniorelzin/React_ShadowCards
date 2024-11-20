@@ -1,0 +1,51 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100vh;
+    width: 100%;
+    background-color: #D3D6CF;
+}
+.containerTelaBatalha {
+    height: 100vh;
+    width: 100%;
+    background-color: aqua;
+    display: flex;
+}
+.divDeckAdversario {
+    height: 100vh;
+    width: 20%;
+    background-color: rgb(43, 179, 16);
+}
+.divDeckJogador {
+    height: 100vh;
+    width: 20%;
+    background-color: rgb(16, 179, 179);
+}
+.containerBatalha {
+    height: 100vh;
+    width: 60%;
+}
+.divMaoAdversario {
+    height: 20vh;
+    width: 100%;
+    background-color: rgb(179, 127, 16);
+}
+.divBatalhaAdversario {
+    height: 30vh;
+    width: 100%;
+    background-color: rgb(16, 68, 179);
+}
+.divBatalhaJogador {
+    height: 30vh;
+    width: 100%;
+    background-color: rgb(179, 16, 16);
+}.divMaoJogador {
+    height: 20vh;
+    width: 100%;
+    background-color: rgb(179, 16, 171);
+}
