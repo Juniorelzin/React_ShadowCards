@@ -1,60 +1,345 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react';
 import './TelaBatalha.css';
 
-
 function TelaBatalha() {
+    const [slotCarta1, setSlotCarta1] = useState(null);
+    const [slotCarta2, setSlotCarta2] = useState(null);
+    const [slotCarta3, setSlotCarta3] = useState(null);
+    const [slotCarta4, setSlotCarta4] = useState(null);
+    const [slotCarta5, setSlotCarta5] = useState(null);
+    const [slotCarta6, setSlotCarta6] = useState(null);
 
-    const [slotCarta1, setSlotCarta1] = useState();
-    const [slotCarta2, setSlotCarta2] = useState();
-    const [slotCarta3, setSlotCarta3] = useState();
-    const [slotCarta4, setSlotCarta4] = useState();
-    const [slotCarta5, setSlotCarta5] = useState();
-    const [slotCarta6, setSlotCarta6] = useState();
+    const [cartasJogador, setCartasJogador] = useState([]);
+    const [cartasOponente, setCartasOponente] = useState([]);
+    const [deckJogador, setDeckJogador] = useState([]);
+    const [deckOponente, setDeckOponente] = useState([]);
 
-    const [cartas, setCartas] = useState([
-        { id: 1, deckId: 1, imagem: "./src/assets/images/Carta 1.png", nome: "Dragão", descricao: "Destruidor", atk: 145, def: 150 },
-        { id: 2, deckId: 1, imagem: "./src/assets/images/Carta 2.png", nome: "cavaleiro", descricao: "Usa espada", preco: 60, peso: 400 },
-        { id: 3, deckId: 1, imagem: "./src/assets/images/Carta 3.png", nome: "goblin", descricao: "é verde", preco: 120, peso: 100 },
-        // Adicionar mais cartas com deckId para diferentes decks
-      ]);
+    const [turno, setTurno] = useState(''); // Indica quem é o turno atual (jogador ou oponente)
+    const [rodada, setRodada] = useState(1);
+    const [cartasJogadorDestruidas, setCartasJogadorDestruidas] = useState(0)
+    const [cartasOponenteDestruidas, setCartasOponenteDestruidas] = useState(0)
+    const [cartaJogadorInfo, setCartaJogadorInfo] = useState(null);
+
+    const [cartaHover, setCartaHover] = useState(null);
+
+    const cartasOriginaisJogador = [
+        { id: 1, deckId: 1, imagem: "./src/assets/images/Carta 1.png", nome: "Boss", descricao: "Destruidor", atk: 150, def: 150 },
+        { id: 2, deckId: 1, imagem: "./src/assets/images/Carta 2.png", nome: "Boss", descricao: "Usa espada", atk: 600, def: 400 },
+        { id: 3, deckId: 1, imagem: "./src/assets/images/Carta 3.png", nome: "Barricade", descricao: "é verde", atk: 1200, def: 100 },
+        { id: 4, deckId: 1, imagem: "./src/assets/images/DeckBruxo.png", nome: "Barricade", descricao: "Usa arco", atk: 500, def: 100 },
+        { id: 5, deckId: 1, imagem: "./src/assets/images/DeckMago.png", nome: "Barricade", descricao: "protege", atk: 7200, def: 130 }
+    ];
+
+    const cartasOriginaisOponente = [
+        { id: 1, deckId: 1, imagem: "./src/assets/images/Carta 4.png", nome: "esqueleto", descricao: "osso", atk: 165, def: 130 },
+        { id: 2, deckId: 1, imagem: "./src/assets/images/Carta 4.png", nome: "esqueleto", descricao: "7 cabeças", atk: 80, def: 200 },
+        { id: 3, deckId: 1, imagem: "./src/assets/images/Carta 4.png", nome: "esqueleto", descricao: "torre", atk: 130, def: 180 },
+        { id: 4, deckId: 1, imagem: "./src/assets/images/Carta 4.png", nome: "cachorro", descricao: "é cinza", atk: 80, def: 150 },
+        { id: 5, deckId: 1, imagem: "./src/assets/images/Carta 4.png", nome: "cachorro", descricao: "late", atk: 20, def: 10 }
+    ];
+
+    // Função para embaralhar as cartas
+    const embaralharCartas = (cartas) => {
+        return cartas.sort(() => Math.random() - 0.5);
+    };
+
+    // Inicializa o jogo ao carregar a página
+    useEffect(() => {
+        const cartasEmbaralhadasJogador = embaralharCartas([...cartasOriginaisJogador]);
+        const cartasEmbaralhadasOponente = embaralharCartas([...cartasOriginaisOponente]);
+        
+        setCartasJogador(cartasEmbaralhadasJogador.slice(0, 3)); // Mão do jogador com 3 cartas
+        setDeckJogador(cartasEmbaralhadasJogador.slice(3)); // Restante no deck
+
+        setCartasOponente(cartasEmbaralhadasOponente.slice(0, 3)); // Mão do oponente com 3 cartas
+        setDeckOponente(cartasEmbaralhadasOponente.slice(3)); // Restante no deck
+
+        // Sorteia quem começa
+        const quemComeca = Math.random() < 0.5 ? 'jogador' : 'oponente';
+        setTurno(quemComeca);
+    }, []);
+
+    // Lógica para alternar entre turnos e rodadas
+    const proximoTurno = () => {
+        setTurno(turno === 'jogador' ? 'oponente' : 'jogador');
+        setRodada(rodada + 1);
+    };
+
+   // Função para o jogador arrastar uma carta
+   const aoArrastar = (e, carta) => {
+    e.dataTransfer.setData('carta', JSON.stringify(carta));
+    setCartaJogadorInfo(JSON.parse(e.dataTransfer.getData('carta')))
+};
+
+// Função para o jogador soltar uma carta em um dos slots
+const aoSoltar = (e, slot) => {
+    if (turno !== 'jogador') return;
+
+    let cartaJogador = null
+
+    try {
+        // Verifica se a carta foi realmente arrastada e se o dado existe
+        const cartaData = e.dataTransfer.getData('carta');
+        if (cartaData) {
+
+            cartaJogador = (JSON.parse(cartaData)); // Tenta fazer o parse do JSON
+            
+        }
+    } catch (error) {
+        console.error("Erro ao tentar analisar a carta:", error);
+        return; // Se houver erro no parse, não continua a execução
+    }
+
+
+    let cartaOponente = null;
+
+    if (slot === 'slot4') {
+        cartaOponente = slotCarta4;
+    } else if (slot === 'slot5') {
+        cartaOponente = slotCarta5;
+    } else if (slot === 'slot6') {
+        cartaOponente = slotCarta6;
+    }
+
+     // Coloca a carta no slot correspondente
+     if (slot === 'slot1' && !slotCarta1) {
+        setSlotCarta1(cartaJogador);
+    } else if (slot === 'slot2' && !slotCarta2) {
+        setSlotCarta2(cartaJogador);
+    } else if (slot === 'slot3' && !slotCarta3) {
+        setSlotCarta3(cartaJogador);
+    }
+
+    if (cartaOponente) {
+        // Comparar as cartas e destruir a carta com menor poder
+        compararCartas(cartaJogadorInfo, cartaOponente, slot);
+        console.log(cartaJogadorInfo)
+    }
+
+    setCartasJogador(cartasJogador.filter((c) => c.id !== cartaJogador.id)); // Remove a carta da mão do jogador
+    console.log(cartaJogador)
+    proximoTurno();
+};
+
+
+
+const compararCartas = (cartaJogador, cartaOponente, slot) => {
+    // Verificar se as cartas são válidas e se os atributos necessários existem
+    if (!cartaJogador || !cartaOponente) {
+        console.error('Uma das cartas é inválida:','Carta Jogador:', cartaJogador,'Carta Oponente:', cartaOponente,);
+        return;
+    }
+
+    // Verificar se a carta do jogador tem a propriedade 'atk' e a carta do oponente tem a propriedade 'def'
+    if (cartaJogador.atk === undefined || cartaOponente.def === undefined) {
+        console.error('Valores de atributos inválidos - cartaJogador:', cartaJogador, 'cartaOponente:', cartaOponente);
+        return;
+    }
+
+    if (cartaJogador.atk > cartaOponente.def) {
+        // O jogador venceu a comparação, destrói a carta do oponente
+        destruirCartaOponente(cartaOponente, slot);
+    } else {
+        // O oponente venceu a comparação, destrói a carta do jogador
+        destruirCartaJogador(cartaJogador, slot);
+    }
+};
+
+// Função para destruir a carta do oponente
+const destruirCartaOponente = (cartaOponente, slot) => {
+    if (slot === 'slot4') {
+        setSlotCarta4(null);
+    } else if (slot === 'slot5') {
+        setSlotCarta5(null);
+    } else if (slot === 'slot6') {
+        setSlotCarta6(null);
+    }
+
+    setCartasOponente(cartasOponente.filter((c) => c.id !== cartaOponente.id));
+    setCartasOponenteDestruidas(cartasOponenteDestruidas + 1)
+};
+
+// Função para destruir a carta do jogador
+const destruirCartaJogador = (cartaJogador, slot) => {
+    if (slot === 'slot1') {
+        setSlotCarta1(null);
+    } else if (slot === 'slot2') {
+        setSlotCarta2(null);
+    } else if (slot === 'slot3') {
+        setSlotCarta3(null);
+    }
+
+    setCartasJogador(cartasJogador.filter((c) => c.id !== cartaJogador.id));
+    setCartasJogadorDestruidas(cartasJogadorDestruidas + 1)
+};
+
+    // Lógica para o oponente jogar automaticamente
+    const jogadaOponente = () => {
+      if (turno === 'oponente') {
+          const carta = cartasOponente[0]; 
+          
+          const slotAleatorio = Math.floor(Math.random() * 3) + 4; 
+
+          if (slotAleatorio === 4 && !slotCarta4) {
+              setSlotCarta4(carta);
+          } else if (slotAleatorio === 5 && !slotCarta5) {
+              setSlotCarta5(carta);
+          } else if (slotAleatorio === 6 && !slotCarta6) {
+              setSlotCarta6(carta);
+          } else {
+              jogadaOponente();
+              return;
+          }
+
+          setCartasOponente(cartasOponente.slice(1)); 
+          proximoTurno();
+      }
+  };
+
+    // Lógica para o oponente comprar cartas automaticamente
+    useEffect(() => {
+        if (cartasOponente.length < 2 && deckOponente.length > 0) {
+            const novaCarta = deckOponente[0];
+            setCartasOponente([...cartasOponente, novaCarta]);
+            setDeckOponente(deckOponente.slice(1));
+        }
+    }, [cartasOponente, deckOponente]);
+
+    // Lógica para o jogador comprar carta
+    const comprarCartaJogador = () => {
+        if (cartasJogador.length <= 2 && deckJogador.length > 0) {
+            const novaCarta = deckJogador[0];
+            setCartasJogador([...cartasJogador, novaCarta]);
+            setDeckJogador(deckJogador.slice(1));
+        }
+    };
+
+    useEffect(() => {
+        if (turno === 'oponente') {
+            setTimeout(() => jogadaOponente(), 1000);
+        }
+    }, [turno]);
 
     return (
+        <div className='containerTelaBatalha'>
+          <div className='containerdeckAdversdario'>
 
-      <div className='containerTelaBatalha'>
 
-        <div className='divDeckAdversario'>
+          <div className='divDeckAdversario'>
+                Deck do Oponente ({deckOponente.length} cartas restantes)
+          </div>
 
-        </div>
+          <div className='divCartaAparece'>
 
-        <div className='containerBatalha'>
+              {/* Exibe a carta sobre a qual o jogador está passando o mouse */}
+              {cartaHover ? (
+                    <img className='imgCartaAparece' src={cartaHover.imagem} alt={cartaHover.nome} />
+                ) : (
+                    <img className='imgCartaDesAparece' src="./src/assets/images/LogoShadowDuel.png" alt="Imagem Padrão" />
+                )}
+                
+          </div>
 
+          </div>
+           
+
+            <div className='containerBatalha'>
                 <div className='divMaoAdversario'>
-
+                    {/* Cartas na mão do oponente */}
                 </div>
+
                 <div className='divBatalhaAdversario'>
-                    {slotCarta4}{slotCarta5}{slotCarta6}
-                </div>
-                <div className='divBatalhaJogador'>
-                    {slotCarta1}{slotCarta2}{slotCarta3}
-                </div>
+        {/* Cartas jogadas pelo oponente */}
+        <div className='divCartaBatalha'
+            onDrop={(e) => aoSoltar(e, 'slot4')} 
+            onDragOver={(e) => e.preventDefault()}
+            onMouseEnter={() => setCartaHover(slotCarta4)} // Quando o mouse entra no slot
+            onMouseLeave={() => setCartaHover(null)} // Quando o mouse sai do slot
+        >
+            {slotCarta4 ? <img className='imgCartaCampo' src={slotCarta4.imagem} alt={slotCarta4.nome} /> : <img className='imgSemCarta' src="./src/assets/images/LogoShadowDuel.png" alt="Imagem Padrão" />}
+        </div>
+        <div className='divCartaBatalha'
+            onDrop={(e) => aoSoltar(e, 'slot5')} 
+            onDragOver={(e) => e.preventDefault()}
+            onMouseEnter={() => setCartaHover(slotCarta5)} // Quando o mouse entra no slot
+            onMouseLeave={() => setCartaHover(null)} // Quando o mouse sai do slot
+        >
+            {slotCarta5 ? <img className='imgCartaCampo' src={slotCarta5.imagem} alt={slotCarta5.nome} /> : <img className='imgSemCarta' src="./src/assets/images/LogoShadowDuel.png" alt="Imagem Padrão" />}
+        </div>
+        <div className='divCartaBatalha'
+            onDrop={(e) => aoSoltar(e, 'slot6')} 
+            onDragOver={(e) => e.preventDefault()}
+            onMouseEnter={() => setCartaHover(slotCarta6)} // Quando o mouse entra no slot
+            onMouseLeave={() => setCartaHover(null)} // Quando o mouse sai do slot
+        >
+            {slotCarta6 ? <img className='imgCartaCampo' src={slotCarta6.imagem} alt={slotCarta6.nome} /> : <img className='imgSemCarta' src="./src/assets/images/LogoShadowDuel.png" alt="Imagem Padrão" />}
+        </div>
+    </div>
+
+    <div className='divBatalhaJogador'>
+        {/* Cartas jogadas pelo jogador */}
+        <div className='divCartaBatalha'
+            onDrop={(e) => aoSoltar(e, 'slot1')} 
+            onDragOver={(e) => e.preventDefault()}
+            onMouseEnter={() => setCartaHover(slotCarta1)} // Quando o mouse entra no slot
+            onMouseLeave={() => setCartaHover(null)} // Quando o mouse sai do slot
+        >
+            {slotCarta1 ? <img className='imgCartaCampo' src={slotCarta1.imagem} alt={slotCarta1.nome} /> : <img className='imgSemCarta' src="./src/assets/images/LogoShadowDuel.png" alt="Imagem Padrão" />}
+        </div>
+        <div className='divCartaBatalha'
+            onDrop={(e) => aoSoltar(e, 'slot2')} 
+            onDragOver={(e) => e.preventDefault()}
+            onMouseEnter={() => setCartaHover(slotCarta2)} // Quando o mouse entra no slot
+            onMouseLeave={() => setCartaHover(null)} // Quando o mouse sai do slot
+        >
+            {slotCarta2 ? <img className='imgCartaCampo' src={slotCarta2.imagem} alt={slotCarta2.nome} /> : <img className='imgSemCarta' src="./src/assets/images/LogoShadowDuel.png" alt="Imagem Padrão" />}
+        </div>
+        <div className='divCartaBatalha'
+            onDrop={(e) => aoSoltar(e, 'slot3')} 
+            onDragOver={(e) => e.preventDefault()}
+            onMouseEnter={() => setCartaHover(slotCarta3)} // Quando o mouse entra no slot
+            onMouseLeave={() => setCartaHover(null)} // Quando o mouse sai do slot
+        >
+            {slotCarta3 ? <img className='imgCartaCampo' src={slotCarta3.imagem} alt={slotCarta3.nome} /> : <img className='imgSemCarta' src="./src/assets/images/LogoShadowDuel.png" alt="Imagem Padrão" />}
+        </div>
+    </div>
+
                 <div className='divMaoJogador'>
-                    
+                    {/* Jogador arrasta as cartas da mão */}
+                    {cartasJogador.map((carta) => (
+                        <div
+                            key={carta.id}
+                            draggable
+                            onDragStart={(e) => aoArrastar(e, carta)}
+                            onMouseEnter={() => setCartaHover(carta)} // Quando passar o mouse
+                            onMouseLeave={() => setCartaHover(null)} // Quando sair do mouse
+                        >
+                            <img className='imgCartaMao' src={carta.imagem} alt={carta.nome} />
+                        </div>
+                    ))}
                 </div>
+            </div>
 
+            <div className='containerDeckJogador'>
+                {/* Deck e informações do jogador */}
+                <div className='divInfoJogador'>
+                Rodada: {rodada}
+                Turno: {turno}
+                </div>
+                <div className='divBtnJogador'>
+
+                    cartas destruidas do Jogador: {cartasJogadorDestruidas}
+                    cartas destruidas do oponente: {cartasOponenteDestruidas}
+                    
+                    <button className='btnJogador' onClick={comprarCartaJogador} >Comprar</button>
+                </div>
+                <div className='divDeckJogador'>
+                Deck do Jogador ({deckJogador.length} cartas restantes)
+                </div>
+            </div>
         </div>
-
-       
-        <div className='divDeckJogador'>
-
-        </div>
-
-
-        
-      </div>
     );
-  }
-  
-  export default TelaBatalha;
-  
-  
+}
+
+export default TelaBatalha;
+
