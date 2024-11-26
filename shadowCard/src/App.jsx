@@ -10,7 +10,10 @@ import Decks from './pages/Decks';
 import Caminho from './pages/Caminho';
 import TelaBatalha from './pages/TelaBatalha';
 
+import { AuthProvider } from "../context/AuthContext";
+
 function App() {
+
 }
 export default App;
 
