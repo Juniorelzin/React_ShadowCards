@@ -1,9 +1,32 @@
 import { Link, useNavigate } from 'react-router-dom'
 import './Login.css'
+import api from "../config/axios";
+import { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
 function Login() {
 
-    const navigate = useNavigate();
+const { login } = useAuth();
+
+const [email, setEmail] = useState("")
+const [password, setPassword] = useState("")
+const navigate = useNavigate();
+
+ const handleLogin = async () => {
+      const loginData = {
+        email,
+        password
+      };
+      console.log(loginData)
+      try {
+        const response = await api.post('/auth/login', loginData);      
+        login(response.data.token);
+        navigate("/home");
+      } catch (error) {
+        console.error('Erro ao buscar dados do usuário:', error);
+      }
+    
+  };
 
     return (
         <div className='container'>
@@ -27,19 +50,19 @@ function Login() {
 
                 <div className='divDescricao'>
                     <p className='descricaoInput'>Email*</p>
-                    <input type="text" />
+                    <input onChange={(e) => setEmail(e.target.value)} type="text" />
                 </div>
 
                 <div className='divDescricao'>
                     <p className='descricaoInput'>Senha*</p>
-                    <input type="text" />
+                    <input onChange={(e) => setPassword(e.target.value)} type="text" />
                 </div>
 
                 <Link to="/cadastro">
                     <p>Não tem uma conta?</p>
                 </Link>
 
-                <button className='botaoEntrar' onClick={() => navigate('/caminho')}>Entrar</button>
+                <button className='botaoEntrar' onClick={() => handleLogin()}>Entrar</button>
 
             </div>
         </div>

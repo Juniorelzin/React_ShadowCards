@@ -1,10 +1,10 @@
 import api from "../config/axios";
 const { login } = useAuth();
 
- const handleLogin = async () => {
+ const handleLogin = async (email, password) => {
       const loginData = {
-        email: "teste@teste.com.br",
-        password: "teste123"
+        email,
+        password
       };
       try {
         const response = await api.post('/auth/login', loginData);      

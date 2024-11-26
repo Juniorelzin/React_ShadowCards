@@ -25,7 +25,7 @@ import TelaBatalha from "../pages/TelaBatalha";
 
 // export default router;
 
-import { AuthProvider } from "../context/AuthContext";
+import { AuthProvider } from "../contexts/AuthContext";
 
 <AuthProvider>
       <BrowserRouter>

@@ -21,7 +21,7 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'; // Corrigido
 import { GlobalContextProvider } from './contexts/GlobalContext.jsx';
-import { AuthProvider } from "../context/AuthContext"; // Verifique se o caminho está correto
+import { AuthProvider } from "./contexts/AuthContext"; // Verifique se o caminho está correto
 
 // Importação das páginas
 import Cadastro from './pages/Cadastro'; // Exemplo, ajuste conforme necessário
