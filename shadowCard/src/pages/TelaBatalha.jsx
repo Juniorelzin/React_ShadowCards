@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import Modal from 'react-modal'; // Importa o react-modal
 import './TelaBatalha.css';
 
+Modal.setAppElement('#root'); // Define o root do aplicativo para acessibilidade
+
 function TelaBatalha() {
+
     const [slotCarta1, setSlotCarta1] = useState(null);
     const [slotCarta2, setSlotCarta2] = useState(null);
     const [slotCarta3, setSlotCarta3] = useState(null);
@@ -14,14 +18,16 @@ function TelaBatalha() {
     const [deckJogador, setDeckJogador] = useState([]);
     const [deckOponente, setDeckOponente] = useState([]);
 
-    const [turno, setTurno] = useState(''); // Indica quem é o turno atual (jogador ou oponente)
+    const [turno, setTurno] = useState(''); // Indica o turno atual (jogador ou oponente)
     const [rodada, setRodada] = useState(1);
-    const [cartasJogadorDestruidas, setCartasJogadorDestruidas] = useState(0)
-    const [cartasOponenteDestruidas, setCartasOponenteDestruidas] = useState(0)
+    const [pontosJogador, setPontosJogador] = useState(0);
+    const [pontosOponente, setPontosOponente] = useState(0);
+
+    const [modalAberto, setModalAberto] = useState(false); // Controla o estado do modal
+    const [mensagemVencedor, setMensagemVencedor] = useState(''); // Mensagem que será exibida no modal
+
     const [cartaJogadorInfo, setCartaJogadorInfo] = useState(null);
-
     const [cartaHover, setCartaHover] = useState(null);
-
     const cartasOriginaisJogador = [
         { id: 1, deckId: 1, imagem: "./src/assets/images/Carta 1.png", nome: "Boss", descricao: "Destruidor", atk: 150, def: 150 },
         { id: 2, deckId: 1, imagem: "./src/assets/images/Carta 2.png", nome: "Boss", descricao: "Usa espada", atk: 600, def: 400 },
@@ -37,6 +43,23 @@ function TelaBatalha() {
         { id: 4, deckId: 1, imagem: "./src/assets/images/Carta 4.png", nome: "cachorro", descricao: "é cinza", atk: 80, def: 150 },
         { id: 5, deckId: 1, imagem: "./src/assets/images/Carta 4.png", nome: "cachorro", descricao: "late", atk: 20, def: 10 }
     ];
+
+     // Verifica o vencedor quando os pontos de alguém chegam a 3
+     useEffect(() => {
+        if (pontosJogador === 3) {
+            setMensagemVencedor('Parabéns! Você venceu!');
+            setModalAberto(true); // Abre o modal
+        } else if (pontosOponente === 3) {
+            setMensagemVencedor('Que pena! O oponente venceu!');
+            setModalAberto(true); // Abre o modal
+        }
+    }, [pontosJogador, pontosOponente]);
+
+    // Função para fechar o modal
+    const fecharModal = () => {
+        setModalAberto(false);
+        window.location.reload(); // Reinicia o jogo ao fechar o modal
+    };
 
     // Função para embaralhar as cartas
     const embaralharCartas = (cartas) => {
@@ -63,6 +86,7 @@ function TelaBatalha() {
     const proximoTurno = () => {
         setTurno(turno === 'jogador' ? 'oponente' : 'jogador');
         setRodada(rodada + 1);
+        comprarCartaJogador();
     };
 
    // Função para o jogador arrastar uma carta
@@ -113,11 +137,10 @@ const aoSoltar = (e, slot) => {
     if (cartaOponente) {
         // Comparar as cartas e destruir a carta com menor poder
         compararCartas(cartaJogadorInfo, cartaOponente, slot);
-        console.log(cartaJogadorInfo)
+        proximoTurno()
     }
 
     setCartasJogador(cartasJogador.filter((c) => c.id !== cartaJogador.id)); // Remove a carta da mão do jogador
-    console.log(cartaJogador)
     proximoTurno();
 };
 
@@ -139,9 +162,15 @@ const compararCartas = (cartaJogador, cartaOponente, slot) => {
     if (cartaJogador.atk > cartaOponente.def) {
         // O jogador venceu a comparação, destrói a carta do oponente
         destruirCartaOponente(cartaOponente, slot);
+        setPontosJogador(pontosJogador + 1)
+        console.log('O jogador venceu a comparação, destrói a carta do oponente')
+        
     } else {
         // O oponente venceu a comparação, destrói a carta do jogador
         destruirCartaJogador(cartaJogador, slot);
+        setPontosOponente(pontosOponente + 1)
+        console.log('O oponente venceu a comparação, destrói a carta do jogador')
+        
     }
 };
 
@@ -156,9 +185,8 @@ const destruirCartaOponente = (cartaOponente, slot) => {
     }
 
     setCartasOponente(cartasOponente.filter((c) => c.id !== cartaOponente.id));
-    setCartasOponenteDestruidas(cartasOponenteDestruidas + 1)
-};
-
+   
+}
 // Função para destruir a carta do jogador
 const destruirCartaJogador = (cartaJogador, slot) => {
     if (slot === 'slot1') {
@@ -170,31 +198,73 @@ const destruirCartaJogador = (cartaJogador, slot) => {
     }
 
     setCartasJogador(cartasJogador.filter((c) => c.id !== cartaJogador.id));
-    setCartasJogadorDestruidas(cartasJogadorDestruidas + 1)
+    
 };
 
-    // Lógica para o oponente jogar automaticamente
-    const jogadaOponente = () => {
-      if (turno === 'oponente') {
-          const carta = cartasOponente[0]; 
-          
-          const slotAleatorio = Math.floor(Math.random() * 3) + 4; 
+    // Modifique a função jogadaOponente para incluir o ataque
+const jogadaOponente = () => {
+    if (turno === 'oponente') {
+        const carta = cartasOponente[0];
 
-          if (slotAleatorio === 4 && !slotCarta4) {
-              setSlotCarta4(carta);
-          } else if (slotAleatorio === 5 && !slotCarta5) {
-              setSlotCarta5(carta);
-          } else if (slotAleatorio === 6 && !slotCarta6) {
-              setSlotCarta6(carta);
-          } else {
-              jogadaOponente();
-              return;
-          }
+        const slotAleatorio = Math.floor(Math.random() * 3) + 4;
 
-          setCartasOponente(cartasOponente.slice(1)); 
-          proximoTurno();
-      }
-  };
+        if (slotAleatorio === 4 && !slotCarta4) {
+            setSlotCarta4(carta);
+        } else if (slotAleatorio === 5 && !slotCarta5) {
+            setSlotCarta5(carta);
+        } else if (slotAleatorio === 6 && !slotCarta6) {
+            setSlotCarta6(carta);
+        } else {
+            jogadaOponente();
+            return;
+        }
+
+        setCartasOponente(cartasOponente.slice(1));
+
+        // O oponente faz seu ataque após jogar a carta
+        setTimeout(() => ataqueOponente(), 2000);
+
+        proximoTurno();
+    }
+};
+
+  const ataqueOponente = () => {
+    let cartaOponente = null;
+    let cartaJogador = null;
+    let slotJogador = null;
+
+    // Encontre uma carta do oponente para atacar
+    if (slotCarta4) cartaOponente = slotCarta4;
+    else if (slotCarta5) cartaOponente = slotCarta5;
+    else if (slotCarta6) cartaOponente = slotCarta6;
+
+    if (!cartaOponente) {
+        console.log("O oponente não tem cartas para atacar.");
+        return;
+    }
+
+    // Escolha aleatoriamente um slot do jogador para atacar
+    const slotAleatorio = Math.floor(Math.random() * 3) + 1;
+
+    if (slotAleatorio === 1 && slotCarta1) {
+        cartaJogador = slotCarta1;
+        slotJogador = 'slot1';
+    } else if (slotAleatorio === 2 && slotCarta2) {
+        cartaJogador = slotCarta2;
+        slotJogador = 'slot2';
+    } else if (slotAleatorio === 3 && slotCarta3) {
+        cartaJogador = slotCarta3;
+        slotJogador = 'slot3';
+    }
+
+    if (cartaJogador) {
+        // Comparar as cartas e determinar o resultado do ataque
+        compararCartas(cartaJogador, cartaOponente, slotJogador);
+    } else {
+        console.log("O oponente tentou atacar, mas não há cartas do jogador no slot escolhido.");
+    }
+};
+
 
     // Lógica para o oponente comprar cartas automaticamente
     useEffect(() => {
@@ -216,7 +286,7 @@ const destruirCartaJogador = (cartaJogador, slot) => {
 
     useEffect(() => {
         if (turno === 'oponente') {
-            setTimeout(() => jogadaOponente(), 1000);
+            setTimeout(() => jogadaOponente(), 2000);
         }
     }, [turno]);
 
@@ -226,7 +296,8 @@ const destruirCartaJogador = (cartaJogador, slot) => {
 
 
           <div className='divDeckAdversario'>
-                Deck do Oponente ({deckOponente.length} cartas restantes)
+          <img className='imgDeckOponente' src="./src/assets/images/LogoShadowDuel.png" alt="Imagem Padrão" />
+                ({deckOponente.length} cartas restantes)
           </div>
 
           <div className='divCartaAparece'>
@@ -323,20 +394,37 @@ const destruirCartaJogador = (cartaJogador, slot) => {
             <div className='containerDeckJogador'>
                 {/* Deck e informações do jogador */}
                 <div className='divInfoJogador'>
-                Rodada: {rodada}
-                Turno: {turno}
+                    <p>Rodada: {rodada}</p>
+                    <p>Turno do {turno}</p>
+                
+                
                 </div>
                 <div className='divBtnJogador'>
 
-                    cartas destruidas do Jogador: {cartasJogadorDestruidas}
-                    cartas destruidas do oponente: {cartasOponenteDestruidas}
+                    <p>pontos do oponente: {pontosOponente}</p>
+
+
+                    <p>pontos do Jogador: {pontosJogador}</p>
                     
-                    <button className='btnJogador' onClick={comprarCartaJogador} >Comprar</button>
+                    
                 </div>
                 <div className='divDeckJogador'>
-                Deck do Jogador ({deckJogador.length} cartas restantes)
+                <img className='imgDeck' src="./src/assets/images/LogoShadowDuel.png" alt="Imagem Padrão" />
+                <p>({deckJogador.length} cartas restantes)</p>
                 </div>
             </div>
+
+              {/* Modal que será aberto quando houver um vencedor */}
+            <Modal
+                isOpen={modalAberto}
+                onRequestClose={fecharModal}
+                contentLabel="Resultado da Batalha"
+                className="modalContent"
+                overlayClassName="modalOverlay"
+            >
+                <h2>{mensagemVencedor}</h2>
+                <button onClick={fecharModal}>Reiniciar Jogo</button>
+            </Modal>
         </div>
     );
 }

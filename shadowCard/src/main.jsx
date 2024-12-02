@@ -41,14 +41,16 @@ createRoot(document.getElementById('root')).render(
         <Routes>
           <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/" element={<Login />} />
+          <Route path="/batalhas" element={<Batalhas />} />
+          <Route path="/telaBatalha" element={<TelaBatalha />} />
 
           <Route element={<ProtectedRoute />}>
-            <Route path="/batalhas" element={<Batalhas />} />
+            
             <Route path="/caminho" element={<Caminho />} />
             <Route path="/perfil" element={<Perfil />} />
             <Route path="/decks" element={<Decks />} />
             <Route path="/loja" element={<Loja />} />
-            <Route path="/telaBatalha" element={<TelaBatalha />} />
+           
           </Route>
 
           <Route path="*" element={<Navigate to="/" />} />

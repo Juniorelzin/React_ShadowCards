@@ -30,13 +30,11 @@ body {
 .containerTelaBatalha {
     height: 100vh;
     width: 100%;
-    background-color: aqua;
     display: flex;
 }
 .containerdeckAdversdario {
     height: 100vh;
     width: 25%;
-    background-color: rgb(43, 179, 16);
     display: flex;
     flex-direction: column;
 
@@ -44,15 +42,18 @@ body {
 .divDeckAdversario {
     height: 20vh;
     width: 100%;
-    background-color: rgb(19, 16, 179);
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
     
+}
+.imgDeckOponente {
+    width: 10vh;
 }
 .divCartaAparece {
     height: 80vh;
     width: 100%;
-    background-color: rgb(16, 179, 24);
     display: flex;
     justify-content: center;
 }
@@ -66,25 +67,24 @@ body {
 .containerDeckJogador {
     height: 100vh;
     width: 15%;
-    background-color: rgb(16, 179, 179);
     display: flex;
     flex-direction: column;
 }
 .divInfoJogador {
     height: 20vh;
     width: 100%;
-    background-color: rgb(16, 27, 179);
     display: flex;
     flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
 }
 .divBtnJogador {
     height: 60vh;
     width: 100%;
     display: flex;
-    align-items: center;
-    justify-content: center;
     flex-direction: column;
-    background-color: rgb(35, 179, 16);
+    justify-content: space-evenly;
+    align-items: center;
 }
 .btnJogador {
     height: 10vh;
@@ -93,11 +93,18 @@ body {
 .divDeckJogador {
     height: 20vh;
     width: 100%;
-    background-color: rgb(179, 16, 125);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+}
+.imgDeck {
+    width: 10vh;
 }
 .containerBatalha {
     height: 100vh;
     width: 60%;
+    border: 1px bold;
 }
 .divCartaBatalha {
     width: 100%;
@@ -107,7 +114,6 @@ body {
 .divMaoAdversario {
     height: 20vh;
     width: 100%;
-    background-color: rgb(179, 127, 16);
     display: flex;
     justify-content: space-evenly;
     align-items: center;
@@ -115,7 +121,6 @@ body {
 .divBatalhaAdversario {
     height: 30vh;
     width: 100%;
-    background-color: rgb(16, 68, 179);
     display: flex;
     justify-content: space-evenly;
     align-items: center;
@@ -123,15 +128,14 @@ body {
 .divBatalhaJogador {
     height: 30vh;
     width: 100%;
-    background-color: rgb(179, 16, 16);
     display: flex;
     justify-content: space-evenly;
     align-items: center;
 }.divMaoJogador {
     height: 20vh;
     width: 100%;
-    background-color: rgb(179, 16, 171);
     display: flex;
     justify-content: space-evenly;
     align-items: center;
 }
+
